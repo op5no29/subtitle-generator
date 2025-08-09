@@ -18,11 +18,63 @@ def get_openai_client():
     return openai.OpenAI(api_key=api_key)
 
 def check_ffmpeg():
-    """FFmpegの存在確認"""
-    if not shutil.which('ffmpeg'):
-        raise RuntimeError("FFmpegがインストールされていません。'brew install ffmpeg'でインストールしてください。")
-    if not shutil.which('ffprobe'):
-        raise RuntimeError("FFprobeがインストールされていません。'brew install ffmpeg'でインストールしてください。")
+    """FFmpegの存在確認（Streamlit Community Cloud対応）"""
+    import os
+    import subprocess
+    
+    # 環境変数で指定されたパスを優先
+    ffmpeg_binary = os.environ.get('FFMPEG_BINARY', 'ffmpeg')
+    ffprobe_binary = os.environ.get('FFPROBE_BINARY', 'ffprobe')
+    
+    # FFmpegとFFprobeの候補パス
+    ffmpeg_candidates = [
+        ffmpeg_binary,
+        'ffmpeg',
+        '/usr/bin/ffmpeg',
+        '/usr/local/bin/ffmpeg',
+        '/opt/conda/bin/ffmpeg',
+        '/home/appuser/venv/bin/ffmpeg'
+    ]
+    
+    ffprobe_candidates = [
+        ffprobe_binary,
+        'ffprobe',
+        '/usr/bin/ffprobe',
+        '/usr/local/bin/ffprobe',
+        '/opt/conda/bin/ffprobe',
+        '/home/appuser/venv/bin/ffprobe'
+    ]
+    
+    # FFmpegチェック
+    ffmpeg_found = False
+    for candidate in ffmpeg_candidates:
+        try:
+            result = subprocess.run([candidate, '-version'],
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                os.environ['FFMPEG_BINARY'] = candidate
+                ffmpeg_found = True
+                break
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.CalledProcessError):
+            continue
+    
+    # FFprobeチェック
+    ffprobe_found = False
+    for candidate in ffprobe_candidates:
+        try:
+            result = subprocess.run([candidate, '-version'],
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                os.environ['FFPROBE_BINARY'] = candidate
+                ffprobe_found = True
+                break
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.CalledProcessError):
+            continue
+    
+    if not ffmpeg_found:
+        raise RuntimeError("FFmpegが見つかりません。Streamlit Community Cloudでは通常利用可能です。")
+    if not ffprobe_found:
+        raise RuntimeError("FFprobeが見つかりません。Streamlit Community Cloudでは通常利用可能です。")
 
 def get_audio_duration(file_path):
     """音声ファイルの長さを取得"""
