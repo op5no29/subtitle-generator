@@ -923,8 +923,6 @@ def main():
             - ✅ 優先サポート
             - ✅ 高品質処理
             
-            **友人特別価格**: 5名様限定でご提供中！
-            
             ---
             
             まずは左サイドバーから **新規登録** または **ログイン** してください。
@@ -962,7 +960,12 @@ def main():
     <div style="text-align: center; color: #666; padding: 1rem 0;">
         <p>🎬 動画・音声文字起こしアプリ - プロフェッショナル版</p>
         <p><small>OpenAI Whisper API & Anthropic Claude API 搭載</small></p>
-        <p><small>島田紫音 - 友人限定サービス</small></p>
+        <p><small>
+            開発者: 島田誌音 | 
+            <a href="https://x.com/c_y_l_i" target="_blank" style="color: #1da1f2; text-decoration: none;">
+                🐦 Twitter
+            </a>
+        </small></p>
     </div>
     """, unsafe_allow_html=True)
 

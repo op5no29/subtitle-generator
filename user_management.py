@@ -77,7 +77,7 @@ class UserManager:
             cursor.execute('''
                 INSERT INTO users (email, password_hash, name, is_admin, subscription_status)
                 VALUES (?, ?, ?, TRUE, 'active')
-            ''', (admin_email, admin_password_hash, "Shion Shimada"))
+            ''', (admin_email, admin_password_hash, "島田誌音"))
             
         conn.commit()
         conn.close()
