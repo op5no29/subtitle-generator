@@ -194,31 +194,38 @@ def render_sidebar():
             
             st.markdown("</div>", unsafe_allow_html=True)
             
+            # メインアプリに戻るボタン（ダッシュボード画面時のみ表示）
+            if st.session_state.get('page') != 'main':
+                if st.button("🏠 メインアプリに戻る", use_container_width=True):
+                    st.session_state.page = "main"
+                    st.rerun()
+                st.markdown("---")
+            
             # メニュー
             st.markdown("### 📊 ダッシュボード")
-            if st.button("📈 使用統計", use_container_width=True):
+            if st.button("📈 使用統計", use_container_width=True, key="sidebar_user_dashboard"):
                 st.session_state.page = "user_dashboard"
                 st.rerun()
             
             if user.get("is_admin", False):
                 st.markdown("### 🔧 管理者機能")
-                if st.button("👥 ユーザー管理", use_container_width=True):
+                if st.button("👥 ユーザー管理", use_container_width=True, key="sidebar_admin_dashboard"):
                     st.session_state.page = "admin_dashboard"
                     st.rerun()
             
             st.markdown("### ⚙️ アカウント")
-            if st.button("🔓 ログアウト", use_container_width=True):
+            if st.button("🔓 ログアウト", use_container_width=True, key="sidebar_logout"):
                 logout()
         
         else:
             st.markdown("### 🔐 認証")
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("📝 新規登録", use_container_width=True):
+                if st.button("📝 新規登録", use_container_width=True, key="sidebar_signup"):
                     st.session_state.auth_mode = "signup"
                     st.rerun()
             with col2:
-                if st.button("🔑 ログイン", use_container_width=True):
+                if st.button("🔑 ログイン", use_container_width=True, key="sidebar_login"):
                     st.session_state.auth_mode = "login"
                     st.rerun()
 
@@ -261,12 +268,46 @@ def render_access_denied():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("💳 プレミアムプランに登録", type="primary", use_container_width=True):
-            st.info("Stripe決済ページに移動します...")
-            # TODO: Stripe決済リンクに移動
+        # 現在のページに基づいてユニークなキーを生成
+        current_tab = st.session_state.get('current_tab', 'unknown')
+        button_key = f"premium_signup_{current_tab}_{hash(str(time.time()))}"
+        
+        if st.button("💳 プレミアムプランに登録", type="primary", use_container_width=True, key=button_key):
+            # TODO: 実際のStripe決済リンクに移動
+            stripe_link = st.secrets.get("stripe_link_test", "")
+            if stripe_link and stripe_link != "disabled":
+                st.markdown(f'<meta http-equiv="refresh" content="0; url={stripe_link}">', unsafe_allow_html=True)
+                st.success("Stripe決済ページに移動中...")
+            else:
+                st.info("💡 Stripe Payment Link設定後に決済機能が有効になります")
+                with st.expander("管理者向け：手動でプレミアム化"):
+                    if st.session_state.current_user.get("is_admin", False):
+                        # 管理者向け手動プレミアム化
+                        if st.button("🔓 このアカウントをプレミアム化", key=f"manual_premium_{button_key}"):
+                            try:
+                                import sqlite3
+                                conn = sqlite3.connect('users.db')
+                                cursor = conn.cursor()
+                                cursor.execute(
+                                    "UPDATE users SET subscription_status = 'active' WHERE id = ?",
+                                    (st.session_state.current_user["id"],)
+                                )
+                                conn.commit()
+                                conn.close()
+                                
+                                # セッション状態更新
+                                st.session_state.current_user["subscription_status"] = "active"
+                                st.success("プレミアムアカウントに変更しました！")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"エラー: {str(e)}")
+                    else:
+                        st.info("管理者権限が必要です")
 
 def video_subtitle_tab():
     """動画字幕生成タブ"""
+    st.session_state.current_tab = "video"  # タブ識別用
+    
     st.markdown("### 📹 動画字幕生成")
     st.markdown("動画ファイルをアップロードして、自動で字幕を生成し、動画に焼き込みます。")
     
@@ -332,6 +373,8 @@ def video_subtitle_tab():
 
 def audio_transcription_tab():
     """音声文字起こしタブ"""
+    st.session_state.current_tab = "audio"  # タブ識別用
+    
     st.markdown("### 🎵 音声・動画文字起こし")
     st.markdown("音声ファイルや動画ファイルをテキストに変換します。")
     
@@ -396,6 +439,8 @@ def audio_transcription_tab():
 
 def realtime_recording_tab():
     """リアルタイム録音タブ"""
+    st.session_state.current_tab = "realtime"  # タブ識別用
+    
     st.markdown("### 🎤 リアルタイム録音・文字起こし")
     st.markdown("マイクから音声を録音して、リアルタイムで文字起こしを行います。")
     
@@ -405,13 +450,35 @@ def realtime_recording_tab():
         render_access_denied()
         return
     
-    # HTTPS環境チェック
+    # HTTPS環境チェック（Streamlit Community Cloud対応）
     try:
-        is_https = st.context.headers.get("X-Forwarded-Proto") == "https"
-        is_localhost = "localhost" in str(st.context.headers.get("Host", ""))
-    except:
-        is_https = False
-        is_localhost = True  # ローカル開発用フォールバック
+        # Streamlit Community Cloudの場合
+        host = str(st.context.headers.get("Host", ""))
+        referer = str(st.context.headers.get("Referer", ""))
+        origin = str(st.context.headers.get("Origin", ""))
+        
+        is_streamlit_cloud = ".streamlit.app" in host or ".streamlitapp.com" in host
+        is_https = (
+            st.context.headers.get("X-Forwarded-Proto") == "https" or
+            "https://" in referer or
+            "https://" in origin or
+            is_streamlit_cloud
+        )
+        is_localhost = "localhost" in host or "127.0.0.1" in host
+        
+        # デバッグ情報（開発時のみ表示）
+        if st.secrets.get("testing_mode", False):
+            with st.expander("🔍 デバッグ情報"):
+                st.write(f"Host: {host}")
+                st.write(f"HTTPS判定: {is_https}")
+                st.write(f"Streamlit Cloud: {is_streamlit_cloud}")
+                st.write(f"Localhost: {is_localhost}")
+        
+    except Exception as e:
+        # フォールバック：環境判定エラー時はHTTPS想定
+        is_https = True
+        is_localhost = False
+        st.info(f"環境判定エラー（HTTPS想定で継続）: {str(e)}")
     
     if not is_https and not is_localhost:
         st.warning("🔒 **マイク機能にはHTTPS環境が必要です**")
@@ -441,29 +508,29 @@ def realtime_recording_tab():
         try:
             from streamlit_mic_recorder import mic_recorder
             
-            if is_https or is_localhost:
-                audio_data = mic_recorder(
-                    start_prompt="🔴 録音開始",
-                    stop_prompt="⏹️ 録音停止",
-                    just_once=True,
-                    use_container_width=True,
-                    key='realtime_recorder'
-                )
+            # マイク機能を常に表示（環境判定に関係なく）
+            st.info("🎤 マイクアクセス許可が必要です")
+            
+            audio_data = mic_recorder(
+                start_prompt="🔴 録音開始",
+                stop_prompt="⏹️ 録音停止",
+                just_once=True,
+                use_container_width=True,
+                key='realtime_recorder'
+            )
+            
+            if audio_data:
+                st.success("録音完了！文字起こしを実行中...")
+                start_time = time.time()
+                process_realtime_audio(audio_data, source_language, translate_option)
+                processing_time = time.time() - start_time
                 
-                if audio_data:
-                    st.success("録音完了！文字起こしを実行中...")
-                    start_time = time.time()
-                    process_realtime_audio(audio_data, source_language, translate_option)
-                    processing_time = time.time() - start_time
-                    
-                    # 使用ログ記録
-                    log_user_usage(
-                        "realtime",
-                        processing_time_seconds=processing_time,
-                        translation_used=translate_option != "翻訳なし"
-                    )
-            else:
-                st.error("🔒 マイク機能はHTTPS環境でのみ利用可能です")
+                # 使用ログ記録
+                log_user_usage(
+                    "realtime",
+                    processing_time_seconds=processing_time,
+                    translation_used=translate_option != "翻訳なし"
+                )
                 
         except ImportError:
             st.warning("⚠️ マイク録音機能をインストール中...")

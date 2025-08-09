@@ -7,6 +7,7 @@ import json
 from datetime import datetime, timedelta
 import hashlib
 import uuid
+import time  # 追加
 from typing import Dict, List, Optional
 import plotly.express as px
 import plotly.graph_objects as go
@@ -14,8 +15,18 @@ import plotly.graph_objects as go
 class UserManager:
     def __init__(self):
         self.init_database()
-        # Stripe設定
-        stripe.api_key = st.secrets.get("stripe_api_key_test", "")
+        # Stripe設定（開発モード対応）
+        try:
+            stripe_key = st.secrets.get("stripe_api_key_test", "")
+            if stripe_key and stripe_key != "sk_test_temporary":
+                stripe.api_key = stripe_key
+                self.stripe_enabled = True
+            else:
+                self.stripe_enabled = False
+                st.info("💡 Stripe未設定：アカウント作成は可能ですが、課金機能は無効です")
+        except Exception as e:
+            self.stripe_enabled = False
+            st.warning(f"Stripe設定エラー: {str(e)}")
         
     def init_database(self):
         """ユーザーデータベースを初期化"""
@@ -85,12 +96,18 @@ class UserManager:
             if existing:
                 return {"success": False, "message": "このメールアドレスは既に登録されています"}
             
-            # Stripe顧客作成
-            stripe_customer = stripe.Customer.create(
-                email=email,
-                name=name,
-                metadata={"app": "subtitle_generator"}
-            )
+            # Stripe顧客作成（Stripe有効時のみ）
+            stripe_customer_id = None
+            if self.stripe_enabled:
+                try:
+                    stripe_customer = stripe.Customer.create(
+                        email=email,
+                        name=name,
+                        metadata={"app": "subtitle_generator"}
+                    )
+                    stripe_customer_id = stripe_customer.id
+                except Exception as e:
+                    st.warning(f"Stripe顧客作成失敗（アカウントは作成されます）: {str(e)}")
             
             # パスワードハッシュ化
             password_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -99,7 +116,7 @@ class UserManager:
             cursor.execute('''
                 INSERT INTO users (email, password_hash, name, stripe_customer_id)
                 VALUES (?, ?, ?, ?)
-            ''', (email, password_hash, name, stripe_customer.id))
+            ''', (email, password_hash, name, stripe_customer_id))
             
             user_id = cursor.lastrowid
             conn.commit()
@@ -109,7 +126,7 @@ class UserManager:
                 "success": True,
                 "message": "ユーザー作成成功",
                 "user_id": user_id,
-                "stripe_customer_id": stripe_customer.id
+                "stripe_customer_id": stripe_customer_id
             }
             
         except Exception as e:
@@ -540,11 +557,28 @@ def signup_form():
                 st.error("パスワードが一致しません")
                 return
             
+            if len(password) < 6:
+                st.error("パスワードは6文字以上で入力してください")
+                return
+            
             user_manager = UserManager()
             result = user_manager.create_user(email, password, name)
             
             if result["success"]:
-                st.success("アカウント作成成功！ログインしてください。")
+                # 成功メッセージと自動ログイン
+                with st.spinner("アカウント作成成功！自動ログインしています..."):
+                    # 自動ログイン
+                    user = user_manager.authenticate_user(email, password)
+                    if user:
+                        st.session_state.current_user = user
+                        st.session_state.auth_mode = None  # 認証モードをクリア
+                        st.success(f"🎉 ようこそ、{user['name']}さん！")
+                        # st.experimental_rerunの代わりにst.rerunを使用
+                        st.rerun()
+                    else:
+                        st.error("自動ログインに失敗しました。手動でログインしてください。")
+                        st.session_state.auth_mode = "login"
+                        st.rerun()
             else:
                 st.error(result["message"])
 
