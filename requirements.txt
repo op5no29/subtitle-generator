@@ -4,3 +4,6 @@ anthropic>=0.7.0
 python-dotenv>=1.0.0
 streamlit-mic-recorder>=0.0.8
 st-paywall==1.0.2
+stripe==7.0.0
+plotly>=5.0.0
+pandas>=1.5.0
