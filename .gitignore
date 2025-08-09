@@ -7,3 +7,7 @@ temp/
 *.mp4
 *.avi
 *.mov
+.streamlit/secrets.toml
+users.db
+__pycache__/
+temp/
