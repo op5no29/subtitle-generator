@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動画・音声文字起こしアプリ - プロフェッショナル版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .feature p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 3rem 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .pricing {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .price {
+            font-size: 2.5rem;
+            color: #667eea;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 2rem;
+        }
+        
+        .footer-nav {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .footer-nav a {
+            background: white;
+            color: #667eea;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .footer-nav a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎬 動画・音声文字起こしアプリ</h1>
+            <p>プロフェッショナル向け高精度文字起こし・翻訳・字幕生成サービス</p>
+        </header>
+        
+        <main class="main-content">
+            <div class="features">
+                <div class="feature">
+                    <h3>📹 動画字幕生成</h3>
+                    <p>動画ファイルから自動で字幕を生成し、動画に焼き込みます。MP4、AVI、MOV、MKV対応。</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>🎵 音声文字起こし</h3>
+                    <p>高精度のAI音声認識で、音声・動画ファイルを正確にテキスト化します。</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>🌐 多言語翻訳</h3>
+                    <p>日本語↔英語、日本語→中国語・韓国語の高品質翻訳機能を搭載。</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>🎤 リアルタイム録音</h3>
+                    <p>マイクからの直接録音・文字起こしで、会議やインタビューに最適。</p>
+                </div>
+            </div>
+            
+            <div class="pricing">
+                <h2>💰 料金プラン</h2>
+                <div class="price">月額 ¥500</div>
+                <p>プレミアムプラン</p>
+                <ul style="text-align: left; display: inline-block; margin: 1rem 0;">
+                    <li>✅ 全機能無制限利用</li>
+                    <li>✅ 高品質AI処理</li>
+                    <li>✅ 優先サポート</li>
+                    <li>✅ データ安全保管</li>
+                </ul>
+            </div>
+            
+            <div class="cta-section">
+                <a href="https://salis-subtitle-generator.streamlit.app/" class="cta-button">
+                    🚀 アプリを使い始める
+                </a>
+                <p style="margin-top: 1rem; color: #666;">
+                    登録後すぐに利用開始できます
+                </p>
+            </div>
+            
+            <div class="footer-nav">
+                <a href="https://salis-subtitle-generator.streamlit.app/" target="_blank">🎬 アプリを利用する</a>
+                <a href="commerce-disclosure.html">📋 特定商取引法に基づく表記</a>
+                <a href="https://github.com/op5no29/subtitle-generator" target="_blank">💻 ソースコード</a>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <p>&copy; 2025 島田誌音 - 動画・音声文字起こしアプリ</p>
+            <p>OpenAI Whisper API & Anthropic Claude API 搭載</p>
+            <p>
+                <a href="https://x.com/c_y_l_i" target="_blank" style="color: white; text-decoration: none;">
+                    🐦 Twitter
+                </a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
